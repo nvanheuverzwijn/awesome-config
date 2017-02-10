@@ -361,6 +361,10 @@ globalkeys = awful.util.table.join(
               {description = "view next", group = "tag"}),
     awful.key({ modkey,           }, "Escape", awful.tag.history.restore,
               {description = "go back", group = "tag"}),
+    awful.key({ modkey, "Control" }, "Left",   function () awful.screen.focus_relative(1) end,
+              {description = "focus on left screen", group = "tag"}),
+    awful.key({ modkey, "Control" }, "Right",  function () awful.screen.focus_relative(-1) end,
+              {description = "focus on right screen", group = "tag"}),
 
     awful.key({ modkey,           }, "j",
         function ()
