@@ -6,15 +6,14 @@ local tonumber = tonumber
 local tostring = tostring
 local print = print
 local pairs = pairs
-
-module("battery")
+local battery = {}
 
 local limits = {{25, 5},
           {12, 3},
           { 7, 1},
             {0}}
 
-function get_bat_state (adapter)
+function battery.get_bat_state (adapter)
     local cur = nil 
     local cap = nil
     local sta = nil
@@ -45,7 +44,7 @@ function get_bat_state (adapter)
     return battery, dir
 end
 
-function getnextlim (num)
+function battery.getnextlim (num)
     for ind, pair in pairs(limits) do
         lim = pair[1]; step = pair[2]; nextlim = limits[ind+1][1] or 0
         if num > nextlim then
@@ -61,23 +60,23 @@ function getnextlim (num)
 end
 
 
-function batclosure (adapter)
+function battery.batclosure (adapter)
     local nextlim = limits[1][1]
     return function ()
         local prefix = "⚡"
-        local battery, dir = get_bat_state(adapter)
+        local lim, dir = battery.get_bat_state(adapter)
 	local battery_display = ""
         if dir == -1 then
             dirsign = "↓"
-            if battery <= nextlim then
+            if lim <= nextlim then
                 naughty.notify({title = "⚡ Beware! ⚡",
-                           text = "Battery charge is low ( ⚡ "..battery.."%)!",
+                           text = "Battery charge is low ( ⚡ "..lim.."%)!",
                             timeout = 7,
                             position = "bottom_right",
                             fg = beautiful.fg_focus,
                             bg = beautiful.bg_focus
                             })
-                nextlim = getnextlim(battery)
+                nextlim = battery.getnextlim(lim)
             end
         elseif dir == 1 then
             dirsign = "↑"
@@ -89,10 +88,11 @@ function batclosure (adapter)
             dirsign = ""
         end
         if dir then 
-            battery = battery.."%" 
-	    battery_display = " "..prefix..dirsign..battery..dirsign.." "
+            lim = lim.."%" 
+	    battery_display = " "..prefix..dirsign..lim..dirsign.." "
         end
         return battery_display
     end
 end
 
+return battery
