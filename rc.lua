@@ -11,7 +11,7 @@ local beautiful = require("beautiful")
 local naughty = require("naughty")
 local menubar = require("menubar")
 local hotkeys_popup = require("awful.hotkeys_popup").widget
-require("battery")
+local battery = require("battery")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
