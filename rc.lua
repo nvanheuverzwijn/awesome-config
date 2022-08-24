@@ -126,53 +126,6 @@ battimer:connect_signal("timeout", function() batterywidget:set_text(bat_clo()) 
 battimer:start()
 -- }}}
 
--- {{{ Volume
--- Initialize widget
-
-
-volumewidget = wibox.widget {
-    {
-        max_value     = 100,
-        value         = 0,
-        background_color = '#222222',
-        color = { type = "linear", from = { 0, 0 }, to = { 20, 0 }, stops = { { 0, "#46FF31" }, { 0.5, "#FBFF0B" }, { 1, "#FF0000" } }},
-        widget        = wibox.widget.progressbar,
-    },
-    forced_height = 20,
-    forced_width  = 15,
-    direction     = 'east',
-    layout        = wibox.container.rotate,
-    buttons       = awful.util.table.join(
-        awful.button({ }, 4,
-                function ()
-                        awful.util.spawn_with_shell("amixer set Master playback 1%+ -M")
-                        vicious.force({volumewidget})
-                end),
-        awful.button({ }, 5,
-                function ()
-                        awful.util.spawn_with_shell("amixer set Master playback 1%- -M")
-                        vicious.force({volumewidget})
-                end)
-    )
-}
-
-volume_text = awful.tooltip({objects = {volumewidget},})
-
-vicious.register(volumewidget, vicious.widgets.volume,
-        function (widget, args)
-            if args[2] == "♫" then -- Sound is ON
-                   widget.widget:set_value(args[1])
-                   volume_text:set_text(args[1] .. "%")
-                   return args[1]
-            else
-                   widget.widget:set_value(0)
-                   volume_text:set_text("Mute")
-                   return 0
-            end
-        end, 5, "Master"
-)
--- }}}
-
 -- {{{ CPU load
 -- Create CPU load widget
 cpubar = awful.widget.graph()
@@ -332,7 +285,6 @@ awful.screen.connect_for_each_screen(function(s)
             mykeyboardlayout,
             wibox.widget.systray(),
             batterywidget,
-            volumewidget,
             cpubar,
             memwidget,
             mytextclock,
@@ -381,45 +333,29 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "w", function () mymainmenu:show() end,
               {description = "show main menu", group = "awesome"}),
 
+  -- Brightness
+    awful.key({}, "XF86MonBrightnessDown", function()
+       awful.util.spawn("xbacklight -dec 5%")
+    end),
+
+    awful.key({}, "XF86MonBrightnessUp", function()
+       awful.util.spawn("xbacklight -inc 5%")
+    end),
+
   -- Sound management
 
     awful.key({}, "XF86AudioMute", function()
        awful.util.spawn("amixer sset Master toggle")
-       volume = vicious.widgets:volume("Master", "")
-       if volume[2] == "♫" then -- Sound is ON
-                volume_notification_id = naughty.notify({title="Volume", timeout=5,replaces_id=volume_notification_id, text=volume[1].."%"}).id
-       else
-                volume_notification_id = naughty.notify({title="Volume", timeout=5,replaces_id=volume_notification_id, text="Mute"}).id
-       end
-    vicious.force({volumewidget})
     end),
 
     awful.key({ }, "XF86AudioRaiseVolume", function ()
-        local volume = vicious.widgets:volume("Master", "")
-        if volume ~= 100 then
-                awful.spawn("amixer set Master playback 5%+ -M")
-                vicious.force({volumewidget})
-        end
-        if volume[2] ~= "♫" then
-                awful.spawn("amixer set Master unmute")
-                vicious.force({volumewidget})
-        end
-        volume = vicious.widgets:volume("Master", "")
-        volume_notification_id = naughty.notify({title="Volume", timeout=5,replaces_id=volume_notification_id, text=volume[1].."%"}).id
+       awful.spawn("amixer set Master playback 5%+ -M")
+       awful.spawn("amixer set Master unmute")
     end),
 
     awful.key({ }, "XF86AudioLowerVolume", function ()
-        local volume = vicious.widgets:volume("Master", "")
-        if volume ~= 0 then
-                awful.spawn("amixer set Master playback 5%- -M")
-                vicious.force({volumewidget})
-    end
-        if volume[2] ~= "♫" then
-                awful.spawn("amixer set Master unmute")
-                vicious.force({volumewidget})
-        end
-        volume = vicious.widgets:volume("Master", "")
-        volume_notification_id = naughty.notify({title="Volume", timeout=5,replaces_id=volume_notification_id, text=volume[1].."%"}).id
+       awful.spawn("amixer set Master playback 5%- -M")
+       awful.spawn("amixer set Master unmute")
     end),
 
     -- Layout manipulation
@@ -727,4 +663,6 @@ function run_once(prg,arg_string,pname,screen)
 end
 
 -- example running nm-applet
--- run_once("nm-applet")
+run_once("nm-applet")
+run_once("pasystray")
+run_once("blueman-applet")
